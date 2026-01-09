@@ -130,7 +130,7 @@ class ApiClient {
 
         // If it's a 401 error, don't retry, just logout
         if (error.response?.status === 401) {
-          this.logout();
+          this.logout(); // Clear local token
           throw error;
         }
 
@@ -205,10 +205,6 @@ class ApiClient {
     };
   }
 
-  async logout(): Promise<void> {
-    // Backend doesn't have logout endpoint, just clear local token
-    this.logout(); // Clear local token
-  }
 
   // Task endpoints
   async getTasks(userId: string): Promise<Task[]> {
