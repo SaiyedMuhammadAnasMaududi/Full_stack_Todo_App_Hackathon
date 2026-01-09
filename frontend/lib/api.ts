@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import AuthUtils from './auth';
 
 // Define TypeScript interfaces for our API entities
 export interface User {
@@ -22,7 +23,6 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8
 
 class ApiClient {
   private client: AxiosInstance;
-  private token: string | null = null;
 
   constructor() {
     this.client = axios.create({
@@ -36,8 +36,9 @@ class ApiClient {
     // Add request interceptor to include JWT token
     this.client.interceptors.request.use(
       (config) => {
-        if (this.token) {
-          config.headers.Authorization = `Bearer ${this.token}`;
+        const token = AuthUtils.getToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
       },
@@ -58,8 +59,8 @@ class ApiClient {
             timestamp: new Date().toISOString(),
           });
 
-          // Trigger logout if token is invalid/expired
-          this.token = null; // Clear local token
+          // Clear token from both ApiClient and AuthUtils
+          AuthUtils.removeTokens(); // Clear tokens from localStorage
         }
         return Promise.reject(error);
       }
@@ -68,13 +69,14 @@ class ApiClient {
 
   // Enhanced methods for JWT token handling
   async ensureTokenValid(): Promise<boolean> {
-    if (!this.token) {
+    const token = AuthUtils.getToken();
+    if (!token) {
       return false;
     }
 
     // Check if token is expired
     try {
-      const payload = this.decodeToken(this.token);
+      const payload = this.decodeToken(token);
       if (!payload) return false;
 
       const currentTime = Math.floor(Date.now() / 1000);
@@ -106,7 +108,8 @@ class ApiClient {
 
   // Set the JWT token for API requests
   setToken(token: string): void {
-    this.token = token;
+    // Token is managed by AuthUtils, so we don't need to store it locally
+    // The interceptor will pick it up from AuthUtils.getToken()
   }
 
   // Retry mechanism with exponential backoff for network failures
@@ -125,7 +128,7 @@ class ApiClient {
 
         // If it's a 401 error, don't retry, just clear token
         if (error.response?.status === 401) {
-          this.token = null; // Clear local token
+          AuthUtils.removeTokens(); // Clear tokens from localStorage
           throw error;
         }
 
