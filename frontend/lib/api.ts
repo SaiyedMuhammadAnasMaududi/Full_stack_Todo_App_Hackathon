@@ -179,9 +179,11 @@ class ApiClient {
     });
   }
 
-  async toggleTaskCompletionWithRetry(userId: string, taskId: string): Promise<Task> {
+  async toggleTaskCompletionWithRetry(userId: string, taskId: string, completed: boolean): Promise<Task> {
     return this.retryWithBackoff(async () => {
-      const response = await this.client.patch(`/api/${userId}/tasks/${taskId}/complete`);
+      const response = await this.client.patch(`/api/${userId}/tasks/${taskId}/complete`, {
+        completed: completed
+      });
       return response.data;
     });
   }
@@ -224,8 +226,10 @@ class ApiClient {
     await this.client.delete(`/api/${userId}/tasks/${taskId}`);
   }
 
-  async toggleTaskCompletion(userId: string, taskId: string): Promise<Task> {
-    const response = await this.client.patch(`/api/${userId}/tasks/${taskId}/complete`);
+  async toggleTaskCompletion(userId: string, taskId: string, completed: boolean): Promise<Task> {
+    const response = await this.client.patch(`/api/${userId}/tasks/${taskId}/complete`, {
+      completed: completed
+    });
     return response.data;
   }
 

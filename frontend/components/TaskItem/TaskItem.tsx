@@ -21,7 +21,7 @@ export default function TaskItem({ userId, task, onUpdate, onDelete }: TaskItemP
   const handleToggleComplete = async () => {
     try {
       setLoading(true);
-      const updatedTask = await apiClient.toggleTaskCompletion(userId, task.id);
+      const updatedTask = await apiClient.toggleTaskCompletion(userId, task.id, !task.completed);
       onUpdate(updatedTask);
     } catch (err: any) {
       console.error('Error toggling task completion:', err);
