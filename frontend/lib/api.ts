@@ -59,7 +59,7 @@ class ApiClient {
           });
 
           // Trigger logout if token is invalid/expired
-          this.logout();
+          this.token = null; // Clear local token
         }
         return Promise.reject(error);
       }
@@ -109,11 +109,6 @@ class ApiClient {
     this.token = token;
   }
 
-  // Clear the JWT token
-  logout(): void {
-    this.token = null;
-  }
-
   // Retry mechanism with exponential backoff for network failures
   async retryWithBackoff<T>(
     operation: () => Promise<T>,
@@ -128,9 +123,9 @@ class ApiClient {
       } catch (error: any) {
         lastError = error;
 
-        // If it's a 401 error, don't retry, just logout
+        // If it's a 401 error, don't retry, just clear token
         if (error.response?.status === 401) {
-          this.logout(); // Clear local token
+          this.token = null; // Clear local token
           throw error;
         }
 
