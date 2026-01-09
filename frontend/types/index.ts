@@ -55,7 +55,7 @@ export interface PasswordRequirements {
 
 // JWT token payload interface
 export interface JwtPayload {
-  userId: string;
+  sub: string;
   email: string;
   exp: number;
   iat: number;

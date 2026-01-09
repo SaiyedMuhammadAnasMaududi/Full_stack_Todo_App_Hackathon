@@ -5,12 +5,13 @@ import { Task } from '@/types';
 import apiClient from '@/lib/api';
 
 interface TaskItemProps {
+  userId: string;
   task: Task;
   onUpdate: (updatedTask: Task) => void;
   onDelete: (taskId: string) => void;
 }
 
-export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
+export default function TaskItem({ userId, task, onUpdate, onDelete }: TaskItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editingTitle, setEditingTitle] = useState(task.title);
   const [editingDescription, setEditingDescription] = useState(task.description || '');
@@ -20,7 +21,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
   const handleToggleComplete = async () => {
     try {
       setLoading(true);
-      const updatedTask = await apiClient.toggleTaskCompletion(task.userId, task.id);
+      const updatedTask = await apiClient.toggleTaskCompletion(userId, task.id);
       onUpdate(updatedTask);
     } catch (err: any) {
       console.error('Error toggling task completion:', err);
@@ -33,7 +34,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
   const handleEdit = async () => {
     try {
       setLoading(true);
-      const updatedTask = await apiClient.updateTask(task.userId, task.id, {
+      const updatedTask = await apiClient.updateTask(userId, task.id, {
         title: editingTitle,
         description: editingDescription,
       });
@@ -52,7 +53,7 @@ export default function TaskItem({ task, onUpdate, onDelete }: TaskItemProps) {
     if (window.confirm('Are you sure you want to delete this task?')) {
       try {
         setLoading(true);
-        await apiClient.deleteTask(task.userId, task.id);
+        await apiClient.deleteTask(userId, task.id);
         onDelete(task.id);
       } catch (err: any) {
         console.error('Error deleting task:', err);

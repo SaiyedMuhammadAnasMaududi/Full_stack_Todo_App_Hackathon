@@ -86,6 +86,7 @@ export default function TaskList({ userId }: TaskListProps) {
         {tasks.map((task) => (
           <TaskItem
             key={task.id}
+            userId={userId}
             task={task}
             onUpdate={handleTaskUpdate}
             onDelete={handleTaskDelete}
