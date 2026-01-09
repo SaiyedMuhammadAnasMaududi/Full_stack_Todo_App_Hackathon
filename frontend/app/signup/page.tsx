@@ -34,13 +34,11 @@ export default function SignupPage() {
       newErrors.email = 'Email is invalid';
     }
 
-    // Password validation (min 8 chars, mixed case, numbers, special chars)
+    // Password validation (simple - just require min length)
     if (!password) {
       newErrors.password = 'Password is required';
-    } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(password)) {
-      newErrors.password = 'Password must include uppercase, lowercase, number, and special character';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
 
     // Confirm password validation
@@ -192,7 +190,7 @@ export default function SignupPage() {
         </form>
 
         <div className="text-xs text-gray-500 mt-4">
-          <p>Password must be at least 8 characters and include uppercase, lowercase, number, and special character.</p>
+          <p>Password must be at least 6 characters.</p>
         </div>
       </div>
     </div>

@@ -189,18 +189,24 @@ class ApiClient {
   }
 
   // Authentication endpoints
-  async signup(email: string, password: string): Promise<{ user: User; token: string }> {
-    const response = await this.client.post('/api/auth/signup', { email, password });
-    return response.data;
+  async signup(email: string, password: string): Promise<{ token: string; refreshToken?: string }> {
+    const response = await this.client.post('/api/auth/register', { email, password });
+    return {
+      token: response.data.access_token,
+      refreshToken: undefined // Backend doesn't return refresh token currently
+    };
   }
 
-  async login(email: string, password: string): Promise<{ user: User; token: string }> {
+  async login(email: string, password: string): Promise<{ token: string; refreshToken?: string }> {
     const response = await this.client.post('/api/auth/login', { email, password });
-    return response.data;
+    return {
+      token: response.data.access_token,
+      refreshToken: undefined // Backend doesn't return refresh token currently
+    };
   }
 
   async logout(): Promise<void> {
-    await this.client.post('/api/auth/logout');
+    // Backend doesn't have logout endpoint, just clear local token
     this.logout(); // Clear local token
   }
 
