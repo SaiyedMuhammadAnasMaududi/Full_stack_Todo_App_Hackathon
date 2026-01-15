@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthGuard from '@/components/AuthGuard/AuthGuard';
 import Header from '@/components/Header/Header';
-import TaskList from '@/components/TaskList/TaskList';
+import TaskList, { TaskListHandle } from '@/components/TaskList/TaskList';
 import TaskForm from '@/components/TaskForm/TaskForm';
 import { Task } from '@/types';
 import AuthUtils from '@/lib/auth';
@@ -12,6 +12,7 @@ import AuthUtils from '@/lib/auth';
 export default function TasksPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const router = useRouter();
+  const taskListRef = useRef<TaskListHandle>(null);
 
   useEffect(() => {
     // Get user info from token
@@ -25,7 +26,10 @@ export default function TasksPage() {
   }, [router]);
 
   const handleTaskCreated = (task: Task) => {
-    // Task created successfully - the TaskList will automatically refresh
+    // Refresh the TaskList to show the new task
+    if (taskListRef.current) {
+      taskListRef.current.refresh();
+    }
     console.log('Task created:', task);
   };
 
@@ -58,7 +62,7 @@ export default function TasksPage() {
 
           <div className="card">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Your Tasks</h2>
-            <TaskList userId={userId} />
+            <TaskList ref={taskListRef} userId={userId} />
           </div>
         </div>
       </div>

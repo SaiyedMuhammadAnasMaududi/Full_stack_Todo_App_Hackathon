@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { Task } from '@/types';
 import TaskItem from '../TaskItem/TaskItem';
 import apiClient from '@/lib/api';
@@ -10,7 +10,11 @@ interface TaskListProps {
   userId: string;
 }
 
-export default function TaskList({ userId }: TaskListProps) {
+export interface TaskListHandle {
+  refresh: () => void;
+}
+
+const TaskList = forwardRef<TaskListHandle, TaskListProps>(({ userId }, ref) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +36,11 @@ export default function TaskList({ userId }: TaskListProps) {
       setLoading(false);
     }
   };
+
+  // Expose refresh function to parent components
+  useImperativeHandle(ref, () => ({
+    refresh: fetchTasks
+  }));
 
   const handleTaskUpdate = (updatedTask: Task) => {
     setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
@@ -81,18 +90,25 @@ export default function TaskList({ userId }: TaskListProps) {
   }
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-md">
+    <div className="bg-white shadow overflow-hidden sm:rounded-md animate-fadeIn">
       <ul className="divide-y divide-gray-200">
-        {tasks.map((task) => (
-          <TaskItem
+        {tasks.map((task, index) => (
+          <div
             key={task.id}
-            userId={userId}
-            task={task}
-            onUpdate={handleTaskUpdate}
-            onDelete={handleTaskDelete}
-          />
+            className="animate-fadeIn"
+            style={{ animationDelay: `${index * 0.05}s` }}
+          >
+            <TaskItem
+              userId={userId}
+              task={task}
+              onUpdate={handleTaskUpdate}
+              onDelete={handleTaskDelete}
+            />
+          </div>
         ))}
       </ul>
     </div>
   );
-}
+});
+
+export default TaskList;

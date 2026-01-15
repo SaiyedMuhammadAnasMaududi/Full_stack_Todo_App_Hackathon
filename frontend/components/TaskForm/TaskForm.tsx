@@ -6,10 +6,11 @@ import apiClient from '@/lib/api';
 
 interface TaskFormProps {
   userId: string;
-  onTaskCreated: (task: Task) => void;
+  onTaskCreated?: (task: Task) => void; // Optional callback for when task is created
+  onTaskChange?: () => void; // Callback to notify parent when tasks change
 }
 
-export default function TaskForm({ userId, onTaskCreated }: TaskFormProps) {
+export default function TaskForm({ userId, onTaskCreated, onTaskChange }: TaskFormProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,16 @@ export default function TaskForm({ userId, onTaskCreated }: TaskFormProps) {
       setError(null);
 
       const newTask = await apiClient.createTask(userId, title, description);
-      onTaskCreated(newTask);
+
+      // Call the optional callback
+      if (onTaskCreated) {
+        onTaskCreated(newTask);
+      }
+
+      // Notify parent that tasks have changed
+      if (onTaskChange) {
+        onTaskChange();
+      }
 
       // Reset form
       setTitle('');

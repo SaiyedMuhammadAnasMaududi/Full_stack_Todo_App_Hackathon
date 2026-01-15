@@ -73,7 +73,9 @@ export default function TaskItem({ userId, task, onUpdate, onDelete }: TaskItemP
 
   return (
     <li
-      className={`task-item ${task.completed ? 'completed' : ''}`}
+      className={`task-item ${task.completed ? 'completed' : ''} transition-all duration-300 ${
+        task.completed ? 'opacity-75' : 'opacity-100'
+      }`}
       aria-labelledby={`task-title-${task.id}`}
       role="listitem"
     >

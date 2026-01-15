@@ -5,8 +5,8 @@ import { Inter } from 'next/font/google';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Todo App',
-  description: 'Secure multi-user todo application with authentication',
+  title: 'SecureTask Manager',
+  description: 'Professional task management with advanced security and real-time collaboration',
 };
 
 export default function RootLayout({
@@ -16,11 +16,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <div className="min-h-screen bg-gray-50">
+      <body className={`${inter.className} bg-gradient-to-br from-blue-50 to-indigo-50`}>
+        <div className="min-h-screen">
           {/* Header will be conditionally rendered based on authentication */}
           <main className="container mx-auto py-6 px-4">
-            {children}
+            <div className="animate-fadeIn">
+              {children}
+            </div>
           </main>
         </div>
       </body>
