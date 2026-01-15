@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import PageTransition from '@/components/PageTransition/PageTransition';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import apiClient from '@/lib/api';
@@ -94,7 +95,8 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
+    <PageTransition>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center shadow-lg">
@@ -269,5 +271,6 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
+    </PageTransition>
   );
 }

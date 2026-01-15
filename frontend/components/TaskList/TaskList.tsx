@@ -2,12 +2,13 @@
 
 import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { Task } from '@/types';
-import TaskItem from '../TaskItem/TaskItem';
+import DraggableTaskItem from '../DraggableTaskItem/DraggableTaskItem';
 import apiClient from '@/lib/api';
 import AuthUtils from '@/lib/auth';
 
 interface TaskListProps {
   userId: string;
+  onTasksUpdate?: (tasks: Task[]) => void;
 }
 
 export interface TaskListHandle {
@@ -29,6 +30,11 @@ const TaskList = forwardRef<TaskListHandle, TaskListProps>(({ userId }, ref) => 
       setError(null);
       const fetchedTasks = await apiClient.getTasks(userId);
       setTasks(fetchedTasks);
+
+      // Notify parent of task updates for statistics
+      if (onTasksUpdate) {
+        onTasksUpdate(fetchedTasks);
+      }
     } catch (err: any) {
       console.error('Error fetching tasks:', err);
       setError(err.message || 'Failed to fetch tasks');
@@ -43,11 +49,62 @@ const TaskList = forwardRef<TaskListHandle, TaskListProps>(({ userId }, ref) => 
   }));
 
   const handleTaskUpdate = (updatedTask: Task) => {
-    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+    const newTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
+    setTasks(newTasks);
+
+    // Notify parent of task updates for statistics
+    if (onTasksUpdate) {
+      onTasksUpdate(newTasks);
+    }
   };
 
   const handleTaskDelete = (deletedTaskId: string) => {
-    setTasks(tasks.filter(task => task.id !== deletedTaskId));
+    const newTasks = tasks.filter(task => task.id !== deletedTaskId);
+    setTasks(newTasks);
+
+    // Notify parent of task updates for statistics
+    if (onTasksUpdate) {
+      onTasksUpdate(newTasks);
+    }
+  };
+
+  // Drag and drop functionality
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  const handleDragStart = (e: React.DragEvent<HTMLLIElement>, taskId: string) => {
+    setDraggedTaskId(taskId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', taskId);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLLIElement>, index: number) => {
+    e.preventDefault();
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLLIElement>, targetIndex: number) => {
+    e.preventDefault();
+    setDragOverIndex(null);
+
+    if (!draggedTaskId) return;
+
+    const draggedIndex = tasks.findIndex(task => task.id === draggedTaskId);
+    if (draggedIndex === -1 || draggedIndex === targetIndex) {
+      setDraggedTaskId(null);
+      return;
+    }
+
+    const newTasks = [...tasks];
+    const [draggedTask] = newTasks.splice(draggedIndex, 1);
+    newTasks.splice(targetIndex, 0, draggedTask);
+
+    setTasks(newTasks);
+    setDraggedTaskId(null);
   };
 
   if (loading) {
@@ -93,18 +150,17 @@ const TaskList = forwardRef<TaskListHandle, TaskListProps>(({ userId }, ref) => 
     <div className="bg-white shadow overflow-hidden sm:rounded-md animate-fadeIn">
       <ul className="divide-y divide-gray-200">
         {tasks.map((task, index) => (
-          <div
+          <DraggableTaskItem
             key={task.id}
-            className="animate-fadeIn"
-            style={{ animationDelay: `${index * 0.05}s` }}
-          >
-            <TaskItem
-              userId={userId}
-              task={task}
-              onUpdate={handleTaskUpdate}
-              onDelete={handleTaskDelete}
-            />
-          </div>
+            userId={userId}
+            task={task}
+            onUpdate={handleTaskUpdate}
+            onDelete={handleTaskDelete}
+            onDragStart={handleDragStart}
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDrop={(e) => handleDrop(e, index)}
+            isDragging={draggedTaskId === task.id}
+          />
         ))}
       </ul>
     </div>

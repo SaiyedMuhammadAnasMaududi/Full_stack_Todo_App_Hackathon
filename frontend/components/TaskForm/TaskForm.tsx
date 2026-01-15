@@ -30,6 +30,15 @@ export default function TaskForm({ userId, onTaskCreated, onTaskChange }: TaskFo
 
       const newTask = await apiClient.createTask(userId, title, description);
 
+      // Add a subtle success animation
+      const form = document.querySelector('form');
+      if (form) {
+        form.classList.add('animate-pop');
+        setTimeout(() => {
+          if (form) form.classList.remove('animate-pop');
+        }, 300);
+      }
+
       // Call the optional callback
       if (onTaskCreated) {
         onTaskCreated(newTask);

@@ -1,6 +1,7 @@
 import '../styles/globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import AppWrapper from '@/components/AppWrapper/AppWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -17,14 +18,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} bg-gradient-to-br from-blue-50 to-indigo-50`}>
-        <div className="min-h-screen">
-          {/* Header will be conditionally rendered based on authentication */}
-          <main className="container mx-auto py-6 px-4">
-            <div className="animate-fadeIn">
-              {children}
-            </div>
-          </main>
-        </div>
+        <AppWrapper>
+          <div className="min-h-screen">
+            {/* Header will be conditionally rendered based on authentication */}
+            <main className="container mx-auto py-6 px-4">
+              <div className="animate-fadeIn">
+                {children}
+              </div>
+            </main>
+          </div>
+        </AppWrapper>
       </body>
     </html>
   );
