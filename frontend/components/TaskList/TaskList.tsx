@@ -15,7 +15,7 @@ export interface TaskListHandle {
   refresh: () => void;
 }
 
-const TaskList = forwardRef<TaskListHandle, TaskListProps>(({ userId }, ref) => {
+const TaskList = forwardRef<TaskListHandle, TaskListProps>(({ userId, onTasksUpdate }, ref) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
