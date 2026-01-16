@@ -164,13 +164,17 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(429, _rate_limit_exceeded_handler)
 
-# Include auth and task routes
+# Include auth, task, and chat routes
 from routes import auth
 app.include_router(auth.router)
 
 # Pass the limiter to the tasks router
 tasks.router.limiter = limiter
 app.include_router(tasks.router)
+
+# Include chat routes
+from routes import chat
+app.include_router(chat.router)
 
 
 # Create database tables

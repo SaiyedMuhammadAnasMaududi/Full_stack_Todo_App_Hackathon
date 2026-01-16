@@ -9,6 +9,7 @@ import TaskForm from '@/components/TaskForm/TaskForm';
 import PageTransition from '@/components/PageTransition/PageTransition';
 import TaskStatistics from '@/components/TaskStatistics/TaskStatistics';
 import TaskChart from '@/components/TaskChart/TaskChart';
+import ChatBot from '@/components/ChatBot/ChatBot';
 import { Task } from '@/types';
 import AuthUtils from '@/lib/auth';
 
@@ -72,14 +73,21 @@ export default function TasksPage() {
 
             <TaskStatistics userId={userId} tasks={tasks} />
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="card animate-fadeIn">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 card animate-fadeIn">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Your Tasks</h2>
                 <TaskList ref={taskListRef} userId={userId} onTasksUpdate={setTasks} />
               </div>
 
               <div className="animate-fadeIn">
                 <TaskChart tasks={tasks} />
+              </div>
+
+              <div className="lg:col-span-3 animate-fadeIn mt-6">
+                <h2 className="text-xl font-semibold text-gray-800 mb-4">AI Assistant</h2>
+                <div className="h-[500px]">
+                  <ChatBot />
+                </div>
               </div>
             </div>
           </div>

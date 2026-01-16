@@ -1,6 +1,7 @@
 from sqlmodel import create_engine
 from sqlalchemy.pool import StaticPool
 import os
+import models  # Import models to register them with SQLAlchemy
 
 # Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./todo_app.db")

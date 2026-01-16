@@ -233,6 +233,26 @@ class ApiClient {
     return response.data;
   }
 
+  // Chat endpoints
+  async getConversations(userId: string): Promise<any> {
+    const response = await this.client.get(`/api/${userId}/conversations`);
+    return response.data;
+  }
+
+  async getConversation(userId: string, conversationId: number): Promise<any> {
+    const response = await this.client.get(`/api/${userId}/conversations/${conversationId}`);
+    return response.data;
+  }
+
+  async sendChatMessage(userId: string, message: string, conversationId?: number): Promise<any> {
+    const requestBody: any = { message };
+    if (conversationId) {
+      requestBody.conversation_id = conversationId;
+    }
+    const response = await this.client.post(`/api/${userId}/chat`, requestBody);
+    return response.data;
+  }
+
   // Generic request method for flexibility
   async request<T>(config: AxiosRequestConfig): Promise<AxiosResponse<T>> {
     return this.client.request<T>(config);
