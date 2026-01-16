@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"\nimport sys\nsys.path.insert\\(0, ''.''\\)\n\ntry:\n    from models import Conversation, Message\n    print\\(''✓ Database models import successfully''\\)\nexcept ImportError as e:\n    print\\(f''✗ Database models import failed: {e}''\\)\n\ntry:\n    from src.services.conversations import ConversationsService\n    print\\(''✓ Conversation service imports successfully''\\)\nexcept ImportError as e:\n    print\\(f''✗ Conversation service import failed: {e}''\\)\n\")",
+      "Bash(python3 -c \"\nimport sys\nsys.path.insert\\(0, ''.''\\)\n\ntry:\n    from src.services.conversations import ConversationsService\n    print\\(''✓ Conversation service imports successfully''\\)\nexcept ImportError as e:\n    print\\(f''✗ Conversation service import failed: {e}''\\)\n\ntry:\n    from src.ai.agent import AIAgent\n    print\\(''✓ AI Agent imports successfully''\\)\nexcept ImportError as e:\n    print\\(f''✗ AI Agent import failed: {e}''\\)\n\")"
+    ]
+  }
+}
