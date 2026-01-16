@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import api from '@/lib/api';
-import { useAuth } from '@/lib/useAuth';
+import { useAuth } from '../../lib/useAuth';
 import ChatWindow from './ChatWindow';
 import { useRouter } from 'next/navigation';
 
