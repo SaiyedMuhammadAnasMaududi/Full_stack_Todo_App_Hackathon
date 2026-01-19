@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from db import get_session
 from auth import get_current_user, TokenData
-from models import Conversation, ConversationCreate, Message, MessageCreate
+from models import Conversation, ConversationCreate, Message, MessageCreate, User
 from src.services.conversations import ConversationsService
 from src.services.auth import validate_user_id_match
 from src.ai.agent import AIAgent, agent
@@ -49,14 +49,14 @@ class ChatResponse(BaseModel):
 async def send_message_to_chatbot(
     user_id: str,
     request: ChatRequest,
-    current_user: TokenData = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
     """
     Send a message to the AI chatbot and receive a response with potential tool calls
     """
     # Validate that the user_id in the token matches the user_id in the request
-    if current_user.user_id != user_id:
+    if current_user.id != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User ID in token does not match user ID in request"
@@ -142,14 +142,14 @@ async def get_user_conversations(
     user_id: str,
     limit: int = 20,
     offset: int = 0,
-    current_user: TokenData = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
     """
     Get user's conversation history
     """
     # Validate that the user_id in the token matches the user_id in the request
-    if current_user.user_id != user_id:
+    if current_user.id != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User ID in token does not match user ID in request"
@@ -196,14 +196,14 @@ async def get_user_conversations(
 async def get_conversation(
     user_id: str,
     conversation_id: int,
-    current_user: TokenData = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session)
 ):
     """
     Get a specific conversation
     """
     # Validate that the user_id in the token matches the user_id in the request
-    if current_user.user_id != user_id:
+    if current_user.id != user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User ID in token does not match user ID in request"

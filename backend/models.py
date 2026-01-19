@@ -91,7 +91,7 @@ class ConversationRead(ConversationBase):
 
 
 class MessageBase(SQLModel):
-    conversation_id: int = Field(foreign_key="conversation.id")
+    conversation_id: int = Field(foreign_key="conversations.id")
     sender_type: Literal['user', 'assistant']
     content: str = Field(max_length=10000)
     role: Literal['user', 'assistant', 'tool_call', 'tool_response']

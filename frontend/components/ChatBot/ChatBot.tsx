@@ -129,19 +129,6 @@ const ChatBot: React.FC = () => {
         // Reload conversations to include the new one
         loadConversations();
       }
-
-      // Show confirmation message if available
-      if (response.confirmation_message) {
-        const confirmationMessage: Message = {
-          id: Date.now() + 2, // Temporary ID
-          sender_type: 'assistant',
-          content: response.confirmation_message,
-          role: 'assistant',
-          timestamp: new Date().toISOString(),
-          sequence_number: messages.length + 3
-        };
-        setMessages(prev => [...prev, confirmationMessage]);
-      }
     } catch (error) {
       console.error('Error sending message:', error);
 

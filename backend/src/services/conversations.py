@@ -4,7 +4,7 @@ from datetime import datetime
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from models import Conversation, ConversationCreate, Message
+from models import Conversation, ConversationCreate, Message, MessageCreate
 
 
 class ConversationsService:
@@ -76,7 +76,6 @@ class ConversationsService:
         if not conversation:
             return None
 
-        from models import Message, MessageCreate
         message_data = MessageCreate(
             conversation_id=conversation_id,
             sender_type=sender_type,

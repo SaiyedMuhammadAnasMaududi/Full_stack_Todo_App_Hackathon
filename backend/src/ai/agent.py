@@ -68,7 +68,7 @@ Always respond in a friendly and helpful manner."""
                 "model": "command-r-08-2024",  # Updated to use currently available model
                 "message": user_message,
                 "chat_history": chat_history,
-                "preamble_override": self.system_prompt,
+                "preamble": self.system_prompt,
                 "connectors": [],  # Removed connectors to avoid potential issues
                 "temperature": 0.3
             }
@@ -96,6 +96,10 @@ Always respond in a friendly and helpful manner."""
             result = response.json()
             ai_response = result.get("text", result.get("response", "I'm not sure how to help with that."))
 
+            # Extract tool calls if present
+            tool_calls = result.get("tool_calls", [])
+            tool_responses = result.get("tool_results", []) or result.get("toolResponses", [])
+
             # Add the assistant's response to the conversation
             conversation_service.add_message_to_conversation(
                 session=session,
@@ -110,6 +114,9 @@ Always respond in a friendly and helpful manner."""
             return {
                 "message": ai_response,
                 "conversation_id": conversation_id,
+                "tool_calls": tool_calls,
+                "tool_responses": tool_responses,
+                "confirmation_message": "",
                 "timestamp": datetime.utcnow().isoformat()
             }
 
@@ -118,6 +125,9 @@ Always respond in a friendly and helpful manner."""
             return {
                 "message": "Sorry, something went wrong while processing your request.",
                 "conversation_id": conversation_id,
+                "tool_calls": [],
+                "tool_responses": [],
+                "confirmation_message": "",
                 "timestamp": datetime.utcnow().isoformat()
             }
 
