@@ -41,7 +41,7 @@ export default function ChatPage() {
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
           <Header />
 
-          <div className="container mx-auto py-6 px-4">
+          <div className="main-content mx-auto py-6 px-4">
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-gray-900">AI Assistant</h1>
               <p className="mt-2 text-sm text-gray-600">

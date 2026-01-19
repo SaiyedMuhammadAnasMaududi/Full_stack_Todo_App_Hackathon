@@ -28,9 +28,18 @@ body {
 
 /* Custom styles for the todo application */
 .container {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0 1rem;
+}
+
+/* Main content container with proper spacing */
+.main-content {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+  width: 100%;
 }
 
 /* Task item styles */
@@ -120,12 +129,207 @@ body {
 }
 
 /* Responsive adjustments */
+@media (min-width: 1280px) {
+  .main-content {
+    max-width: 1200px;
+  }
+
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .lg\:col-span-2 {
+    grid-column: span 2 / span 2;
+  }
+
+  .lg\:col-span-3 {
+    grid-column: span 3 / span 3;
+  }
+}
+
+@media (max-width: 1024px) {
+  .main-content {
+    padding: 0 1rem;
+  }
+
+  .grid-cols-1, .grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .lg\:grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+
+  .lg\:col-span-2, .lg\:col-span-3 {
+    grid-column: span 1 / span 1;
+  }
+
+  /* Adjust header and page layout for tablets */
+  .min-h-screen {
+    min-height: calc(100vh - 1rem);
+  }
+
+  .py-6 {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .text-3xl {
+    font-size: 2rem;
+    line-height: 2.5rem;
+  }
+}
+
 @media (max-width: 768px) {
-  .container {
-    padding: 0 0.5rem;
+  .main-content {
+    padding: 0 1rem;
   }
 
   .task-item {
     @apply flex-col items-start gap-2;
+  }
+
+  /* Adjust for mobile devices */
+  .min-h-screen {
+    min-height: 100vh;
+  }
+
+  /* Mobile-friendly spacing */
+  .py-6 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  .mb-6 {
+    margin-bottom: 1rem;
+  }
+
+  .text-3xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  .text-xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  /* Specific grid adjustments for mobile */
+  .grid.grid-cols-1\.lg\:grid-cols-3 {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+
+  .lg\:col-span-1, .lg\:col-span-2, .lg\:col-span-3 {
+    grid-column: span 1 / span 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .main-content {
+    padding: 0 0.75rem;
+  }
+
+  .text-3xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  .text-xl {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+
+  .text-lg {
+    font-size: 1.125rem;
+  }
+
+  .p-6 {
+    padding: 1rem;
+  }
+
+  .p-4 {
+    padding: 1rem;
+  }
+
+  .px-4.py-2 {
+    padding: 0.5rem;
+  }
+
+  /* Adjust chat window for small screens */
+  .chat-window {
+    height: 250px !important;
+  }
+
+  /* Adjust button sizes */
+  .w-14.h-14 {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .w-12.h-12 {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  /* Adjust header text sizes */
+  .header-text {
+    font-size: 1rem;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0 0.5rem;
+  }
+
+  .text-3xl {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
+  .text-xl {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  .text-lg {
+    font-size: 0.95rem;
+  }
+
+  .text-base {
+    font-size: 0.9rem;
+  }
+
+  .p-4 {
+    padding: 0.5rem;
+  }
+
+  .p-6 {
+    padding: 0.75rem;
+  }
+
+  .mb-6 {
+    margin-bottom: 1rem;
+  }
+
+  .gap-6 {
+    gap: 1rem;
+  }
+
+  /* Further adjust for very small screens */
+  .min-h-\[500px\] {
+    min-height: 300px;
+  }
+
+  .h-\[500px\] {
+    height: 350px;
+  }
+}
+
+/* Extra large screens */
+@media (min-width: 1536px) {
+  .main-content {
+    max-width: 1400px;
   }
 }

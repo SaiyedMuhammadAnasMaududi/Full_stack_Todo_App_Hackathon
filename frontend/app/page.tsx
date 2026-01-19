@@ -11,7 +11,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      <main className="container mx-auto py-6 px-4">
+      <main className="main-content mx-auto py-6 px-4">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
             Boost Your Productivity with Our Todo App
@@ -105,7 +105,7 @@ export default function HomePage() {
       </main>
 
       <footer className="bg-white border-t border-gray-200 py-8 mt-12">
-        <div className="container mx-auto px-4 text-center text-gray-600">
+        <div className="main-content mx-auto px-4 text-center text-gray-600">
           <p>© 2026 Todo App. All rights reserved.</p>
         </div>
       </footer>

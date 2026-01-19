@@ -9,7 +9,8 @@ import TaskForm from '@/components/TaskForm/TaskForm';
 import PageTransition from '@/components/PageTransition/PageTransition';
 import TaskStatistics from '@/components/TaskStatistics/TaskStatistics';
 import TaskChart from '@/components/TaskChart/TaskChart';
-import ChatBot from '@/components/ChatBot/ChatBot';
+import FloatingChatWidget from '@/components/ChatBot/FloatingChatWidget';
+import Link from 'next/link';
 import { Task } from '@/types';
 import AuthUtils from '@/lib/auth';
 
@@ -61,7 +62,7 @@ export default function TasksPage() {
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
           <Header />
 
-          <div className="container mx-auto py-6 px-4">
+          <div className="main-content mx-auto py-6 px-4">
             <div className="mb-6">
               <h1 className="text-3xl font-bold text-gray-900">My Tasks</h1>
               <p className="mt-2 text-sm text-gray-600">
@@ -73,6 +74,7 @@ export default function TasksPage() {
 
             <TaskStatistics userId={userId} tasks={tasks} />
 
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 card animate-fadeIn">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Your Tasks</h2>
@@ -83,16 +85,11 @@ export default function TasksPage() {
                 <TaskChart tasks={tasks} />
               </div>
 
-              <div className="lg:col-span-3 animate-fadeIn mt-6">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">AI Assistant</h2>
-                <div className="h-[500px]">
-                  <ChatBot />
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </AuthGuard>
+      {userId && <FloatingChatWidget userId={userId} />}
     </PageTransition>
   );
 }

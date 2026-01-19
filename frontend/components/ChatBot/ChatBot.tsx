@@ -35,7 +35,12 @@ const ChatBot: React.FC = () => {
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
+    // Small delay to ensure DOM has updated before scrolling
+    const timer = setTimeout(() => {
+      scrollToBottom();
+    }, 100);
+
+    return () => clearTimeout(timer);
   }, [messages]);
 
   const scrollToBottom = () => {

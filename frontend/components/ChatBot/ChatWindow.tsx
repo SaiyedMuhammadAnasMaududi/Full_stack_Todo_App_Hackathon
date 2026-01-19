@@ -34,7 +34,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* Messages container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-25">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-25 max-h-[300px] md:max-h-[calc(500px-120px)]">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-500">
             <h3 className="text-lg font-medium mb-2">Welcome to the AI Task Assistant!</h3>

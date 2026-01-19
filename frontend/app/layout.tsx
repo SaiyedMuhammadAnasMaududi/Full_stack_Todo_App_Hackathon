@@ -21,7 +21,7 @@ export default function RootLayout({
         <AppWrapper>
           <div className="min-h-screen">
             {/* Header will be conditionally rendered based on authentication */}
-            <main className="container mx-auto py-6 px-4">
+            <main className="main-content mx-auto py-6 px-4">
               <div className="animate-fadeIn">
                 {children}
               </div>

@@ -116,7 +116,7 @@ Always respond in a friendly and helpful manner."""
                 "conversation_id": conversation_id,
                 "tool_calls": tool_calls,
                 "tool_responses": tool_responses,
-                "confirmation_message": "",
+                "confirmation_message": ai_response,
                 "timestamp": datetime.utcnow().isoformat()
             }
 
@@ -127,7 +127,7 @@ Always respond in a friendly and helpful manner."""
                 "conversation_id": conversation_id,
                 "tool_calls": [],
                 "tool_responses": [],
-                "confirmation_message": "",
+                "confirmation_message": "Sorry, something went wrong while processing your request.",
                 "timestamp": datetime.utcnow().isoformat()
             }
 
