@@ -16,6 +16,14 @@ export interface Task {
   userId: string;
   createdAt: string;
   updatedAt: string;
+  priority?: string; // low, medium, high
+  tags?: string; // JSON string of tags array
+  due_at?: string; // ISO date string
+  reminder_at?: string; // ISO date string
+  recurrence_rule?: string; // RRULE string for recurrence
+  is_recurring?: boolean;
+  parent_task_id?: string; // ID of parent task for recurring instances
+  completed_at?: string; // Completion timestamp
 }
 
 // Create the base API instance
@@ -212,11 +220,28 @@ class ApiClient {
     return response.data;
   }
 
-  async createTask(userId: string, title: string, description?: string): Promise<Task> {
-    const response = await this.client.post(`/api/${userId}/tasks`, { title, description });
+  // Create task with advanced features
+  async createTask(userId: string, taskData: {
+    title: string;
+    description?: string;
+    priority?: string;
+    tags?: string[];
+    due_at?: string;
+    reminder_at?: string;
+    recurrence_rule?: string;
+    is_recurring?: boolean
+  }): Promise<Task> {
+    const response = await this.client.post(`/api/${userId}/tasks`, taskData);
     return response.data;
   }
 
+  // Update task with all advanced features
+  async updateTaskExtended(userId: string, taskId: string, updates: Partial<Task>): Promise<Task> {
+    const response = await this.client.patch(`/api/${userId}/tasks/${taskId}/update`, updates);
+    return response.data;
+  }
+
+  // Legacy updateTask method (to maintain backward compatibility)
   async updateTask(userId: string, taskId: string, updates: Partial<Task>): Promise<Task> {
     const response = await this.client.put(`/api/${userId}/tasks/${taskId}`, updates);
     return response.data;
@@ -229,6 +254,65 @@ class ApiClient {
   async toggleTaskCompletion(userId: string, taskId: string, completed: boolean): Promise<Task> {
     const response = await this.client.patch(`/api/${userId}/tasks/${taskId}/complete`, {
       completed: completed
+    });
+    return response.data;
+  }
+
+  // Advanced feature methods
+  async searchTasks(userId: string, query: string, limit: number = 20): Promise<Task[]> {
+    const response = await this.client.post(`/api/${userId}/tasks/search`, {
+      query,
+      limit
+    });
+    return response.data;
+  }
+
+  async filterTasks(userId: string, filters: {
+    priority?: string;
+    completed?: boolean;
+    due_after?: string;
+    due_before?: string;
+    tags?: string[];
+    limit?: number
+  }): Promise<Task[]> {
+    const response = await this.client.post(`/api/${userId}/tasks/filter`, filters);
+    return response.data;
+  }
+
+  async sortTasks(userId: string, sortField: string = "created_at", sortOrder: string = "asc", limit: number = 20): Promise<Task[]> {
+    const response = await this.client.post(`/api/${userId}/tasks/sort`, {
+      sort_field: sortField,
+      sort_order: sortOrder,
+      limit
+    });
+    return response.data;
+  }
+
+  async setTaskPriority(userId: string, taskId: string, priority: string): Promise<Task> {
+    const response = await this.client.patch(`/api/${userId}/tasks/${taskId}/update`, {
+      priority
+    });
+    return response.data;
+  }
+
+  async setTaskDueDate(userId: string, taskId: string, dueDate: string): Promise<Task> {
+    const response = await this.client.patch(`/api/${userId}/tasks/${taskId}/update`, {
+      due_at: dueDate
+    });
+    return response.data;
+  }
+
+  async setTaskReminder(userId: string, taskId: string, reminderTime: string): Promise<Task> {
+    const response = await this.client.patch(`/api/${userId}/tasks/${taskId}/update`, {
+      reminder_at: reminderTime
+    });
+    return response.data;
+  }
+
+  async setTaskRecurrence(userId: string, taskId: string, recurrenceRule: string, isRecurring: boolean): Promise<Task> {
+    const response = await this.client.patch(`/api/${userId}/tasks/${taskId}/update`, {
+      recurrence_rule: recurrenceRule,
+      is_recurring: isRecurring
     });
     return response.data;
   }

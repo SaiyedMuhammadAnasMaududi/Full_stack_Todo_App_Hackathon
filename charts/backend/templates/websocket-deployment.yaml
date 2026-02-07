@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websocket-service
+  labels:
+    app: websocket-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: websocket-service
+  template:
+    metadata:
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "websocket-service"
+        dapr.io/app-port: "8004"
+      labels:
+        app: websocket-service
+    spec:
+      containers:
+        - name: websocket-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["uvicorn", "services.websocket_service:app", "--host", "0.0.0.0", "--port", "8004"]
+          ports:
+            - containerPort: 8004
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 5
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: websocket-service
+spec:
+  selector:
+    app: websocket-service
+  ports:
+    - port: 8004
+      targetPort: 8004
+  type: ClusterIP

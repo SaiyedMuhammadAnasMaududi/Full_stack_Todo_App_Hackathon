@@ -6,7 +6,7 @@ date_iso: 2026-02-06
 surface: agent
 model: claude-sonnet-4-5-20250929
 feature: 001-advanced-todo-features
-branch: 001-advanced-todo-features
+branch: main
 user: Claude Sonnet 4.5
 command: /sp.plan
 labels:

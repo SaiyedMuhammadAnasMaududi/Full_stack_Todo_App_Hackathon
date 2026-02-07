@@ -38,8 +38,21 @@ class Task(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
     updated_at: datetime = Field(default_factory=datetime.utcnow, index=True)
 
+    # Advanced Features Fields
+    priority: Optional[str] = Field(default="medium", description="Task priority: low, medium, high")
+    tags: Optional[str] = Field(default=None, description="JSON string of tags array")  # Store as JSON string
+    due_at: Optional[datetime] = Field(default=None, description="Due date and time", index=True)
+    reminder_at: Optional[datetime] = Field(default=None, description="Reminder date and time", index=True)
+    recurrence_rule: Optional[str] = Field(default=None, description="RRULE string for recurrence")
+    is_recurring: bool = Field(default=False, description="Flag indicating if task is recurring", index=True)
+    parent_task_id: Optional[str] = Field(default=None, foreign_key="tasks.id", description="ID of parent task for recurring instances", index=True)
+    completed_at: Optional[datetime] = Field(default=None, description="Completion date and time", index=True)
+
     # Relationship to user
     user: User = Relationship(back_populates="tasks")
+    # Relationship to parent task (for recurring tasks)
+    parent_task: Optional["Task"] = Relationship(back_populates="child_tasks", sa_relationship_kwargs={"remote_side": "Task.id"})
+    child_tasks: list["Task"] = Relationship(back_populates="parent_task")
 
 
 class Conversation(SQLModel, table=True):
@@ -107,4 +120,62 @@ class MessageCreate(MessageBase):
 class MessageRead(MessageBase):
     id: int
     timestamp: datetime
+
+
+class TaskBase(SQLModel):
+    title: str
+    description: Optional[str] = None
+    priority: Optional[str] = "medium"  # Default to medium priority
+    tags: Optional[str] = None  # JSON string of tags
+    due_at: Optional[datetime] = None
+    reminder_at: Optional[datetime] = None
+    recurrence_rule: Optional[str] = None
+    is_recurring: bool = False
+    user_id: str
+
+
+class TaskCreate(TaskBase):
+    pass
+
+
+class TaskUpdate(SQLModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    completed: Optional[bool] = None
+    priority: Optional[str] = None
+    tags: Optional[str] = None  # JSON string of tags
+    due_at: Optional[datetime] = None
+    reminder_at: Optional[datetime] = None
+    recurrence_rule: Optional[str] = None
+    is_recurring: Optional[bool] = None
+
+
+class TaskRead(TaskBase):
+    id: str
+    completed: bool
+    created_at: datetime
+    updated_at: datetime
+    completed_at: Optional[datetime] = None
+    parent_task_id: Optional[str] = None
+
+
+class RecurringTaskTemplate(SQLModel, table=True):
+    __tablename__ = "recurring_task_templates"
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    rrule: str = Field(description="Recurrence rule in RFC 5545 format")
+    base_task_id: str = Field(foreign_key="tasks.id", description="ID of the base task that defines the recurrence pattern", index=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class TaskAudit(SQLModel, table=True):
+    __tablename__ = "task_audits"
+
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
+    task_id: str = Field(foreign_key="tasks.id", description="ID of the task being audited", index=True)
+    action: str = Field(description="Action performed (create, update, complete, delete)", index=True)
+    timestamp: datetime = Field(default_factory=datetime.utcnow, index=True)
+    user_id: str = Field(foreign_key="users.id", description="ID of the user who performed the action", index=True)
+    details: Optional[str] = Field(default=None, description="Additional details about the action")
 

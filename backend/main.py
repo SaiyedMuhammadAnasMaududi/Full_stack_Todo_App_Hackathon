@@ -99,8 +99,8 @@ app.add_middleware(
         "http://127.0.0.1:3001",
         "https://127.0.0.1:3000",
         "https://127.0.0.1:3001",
-        # Add your production frontend URL here
-        # "https://yourdomain.com",
+        "https://full-stack-todo-app-hackathon.vercel.app",
+        "https://syedmuhammadanasmaududi-newbackend.hf.space",
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -177,15 +177,36 @@ from routes import chat
 app.include_router(chat.router)
 
 
-# Create database tables
+# Create database tables and migrate schema
 @app.on_event("startup")
 def on_startup():
     try:
         models.SQLModel.metadata.create_all(bind=engine)
         print("Database tables created successfully")
+
+        # Migrate existing tables - add missing columns
+        from sqlalchemy import text, inspect
+        with engine.connect() as conn:
+            inspector = inspect(engine)
+            if "tasks" in inspector.get_table_names():
+                existing = [c["name"] for c in inspector.get_columns("tasks")]
+                migrations = {
+                    "priority": "VARCHAR DEFAULT 'medium'",
+                    "tags": "VARCHAR",
+                    "due_at": "TIMESTAMP",
+                    "reminder_at": "TIMESTAMP",
+                    "recurrence_rule": "VARCHAR",
+                    "is_recurring": "BOOLEAN DEFAULT FALSE",
+                    "parent_task_id": "VARCHAR",
+                    "completed_at": "TIMESTAMP",
+                }
+                for col, dtype in migrations.items():
+                    if col not in existing:
+                        conn.execute(text(f'ALTER TABLE tasks ADD COLUMN {col} {dtype}'))
+                        print(f"Added column: {col}")
+                conn.commit()
     except Exception as e:
-        print(f"Error creating database tables: {str(e)}")
-        # Don't raise the exception to prevent app from crashing, but log it
+        print(f"Error during startup: {str(e)}")
 
 
 # Health check endpoint

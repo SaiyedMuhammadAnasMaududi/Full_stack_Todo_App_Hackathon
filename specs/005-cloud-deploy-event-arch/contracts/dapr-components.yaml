@@ -1,0 +1,73 @@
+# Dapr Component Contracts for Phase V
+
+---
+# PubSub - Kafka
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: pubsub-kafka
+  namespace: todo-app
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      value: "kafka-cluster-kafka-bootstrap.kafka:9092"
+    - name: authType
+      value: "none"
+    - name: consumerGroup
+      value: "todo-app-group"
+
+---
+# State Store - PostgreSQL
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+  namespace: todo-app
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+    - name: connectionString
+      secretKeyRef:
+        name: db-secret
+        key: DATABASE_URL
+
+---
+# Secret Store - Kubernetes
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kubernetes-secrets
+  namespace: todo-app
+spec:
+  type: secretstores.kubernetes
+  version: v1
+
+---
+# Resiliency
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: todo-resiliency
+  namespace: todo-app
+spec:
+  policies:
+    retries:
+      pubsubRetry:
+        policy: exponential
+        maxInterval: 10s
+        maxRetries: 3
+    circuitBreakers:
+      pubsubCB:
+        maxRequests: 1
+        interval: 30s
+        timeout: 30s
+        trip: consecutiveFailures > 5
+  targets:
+    components:
+      pubsub-kafka:
+        outbound:
+          retry: pubsubRetry
+          circuitBreaker: pubsubCB

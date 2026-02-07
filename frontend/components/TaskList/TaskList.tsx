@@ -17,19 +17,49 @@ export interface TaskListHandle {
 
 const TaskList = forwardRef<TaskListHandle, TaskListProps>(({ userId, onTasksUpdate }, ref) => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchTasks();
-  }, [userId]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterPriority, setFilterPriority] = useState<string>('');
+  const [filterCompleted, setFilterCompleted] = useState<string>('');
+  const [sortBy, setSortBy] = useState<'created_at' | 'priority' | 'due_at' | 'title'>('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const fetchTasks = async () => {
     try {
       setLoading(true);
       setError(null);
-      const fetchedTasks = await apiClient.getTasks(userId);
+
+      let fetchedTasks: Task[] = [];
+
+      // Check if we need to use API-based search/filter/sort
+      if (searchQuery || filterPriority || filterCompleted !== '' || sortBy !== 'created_at' || sortOrder !== 'desc') {
+        // Use API-based search/filter/sort
+        if (searchQuery) {
+          fetchedTasks = await apiClient.searchTasks(userId, searchQuery);
+        } else {
+          fetchedTasks = await apiClient.getTasks(userId);
+        }
+
+        // Apply filters via API if needed
+        if (filterPriority || filterCompleted !== '') {
+          const filters: any = {};
+          if (filterPriority) filters.priority = filterPriority;
+          if (filterCompleted !== '') filters.completed = filterCompleted === 'true';
+          fetchedTasks = await apiClient.filterTasks(userId, filters);
+        }
+
+        // Apply sorting via API if needed
+        if (sortBy !== 'created_at' || sortOrder !== 'desc') {
+          fetchedTasks = await apiClient.sortTasks(userId, sortBy, sortOrder);
+        }
+      } else {
+        fetchedTasks = await apiClient.getTasks(userId);
+      }
+
       setTasks(fetchedTasks);
+      setFilteredTasks(fetchedTasks);
 
       // Notify parent of task updates for statistics
       if (onTasksUpdate) {
@@ -42,6 +72,11 @@ const TaskList = forwardRef<TaskListHandle, TaskListProps>(({ userId, onTasksUpd
       setLoading(false);
     }
   };
+
+  // Refetch tasks when filters/sorting change
+  useEffect(() => {
+    fetchTasks();
+  }, [userId, searchQuery, filterPriority, filterCompleted, sortBy, sortOrder]);
 
   // Expose refresh function to parent components
   useImperativeHandle(ref, () => ({
@@ -134,35 +169,116 @@ const TaskList = forwardRef<TaskListHandle, TaskListProps>(({ userId, onTasksUpd
     );
   }
 
-  if (tasks.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-        <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks</h3>
-        <p className="mt-1 text-sm text-gray-500">Get started by creating a new task.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-md animate-fadeIn">
-      <ul className="divide-y divide-gray-200">
-        {tasks.map((task, index) => (
-          <DraggableTaskItem
-            key={task.id}
-            userId={userId}
-            task={task}
-            onUpdate={handleTaskUpdate}
-            onDelete={handleTaskDelete}
-            onDragStart={handleDragStart}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDrop={(e) => handleDrop(e, index)}
-            isDragging={draggedTaskId === task.id}
-          />
-        ))}
-      </ul>
+    <div className="animate-fadeIn">
+      {/* Filters and Search Controls */}
+      <div className="mb-4 p-4 bg-white rounded-lg shadow-sm">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
+              Search
+            </label>
+            <input
+              type="text"
+              id="search"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search tasks..."
+              className="form-control w-full"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="priority-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              Priority
+            </label>
+            <select
+              id="priority-filter"
+              value={filterPriority}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              className="form-control w-full"
+            >
+              <option value="">All Priorities</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="completed-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              Status
+            </label>
+            <select
+              id="completed-filter"
+              value={filterCompleted}
+              onChange={(e) => setFilterCompleted(e.target.value)}
+              className="form-control w-full"
+            >
+              <option value="">All Tasks</option>
+              <option value="false">Active</option>
+              <option value="true">Completed</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="sort" className="block text-sm font-medium text-gray-700 mb-1">
+              Sort By
+            </label>
+            <div className="flex space-x-2">
+              <select
+                id="sort"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="form-control flex-1"
+              >
+                <option value="created_at">Date Created</option>
+                <option value="priority">Priority</option>
+                <option value="due_at">Due Date</option>
+                <option value="title">Title</option>
+              </select>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as any)}
+                className="form-control w-20"
+              >
+                <option value="asc">A-Z</option>
+                <option value="desc">Z-A</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {filteredTasks.length === 0 ? (
+        <div className="text-center py-12">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">No tasks found</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {tasks.length === 0 ? 'Get started by creating a new task.' : 'Try adjusting your filters.'}
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+          <ul className="divide-y divide-gray-200">
+            {filteredTasks.map((task, index) => (
+              <DraggableTaskItem
+                key={task.id}
+                userId={userId}
+                task={task}
+                onUpdate={handleTaskUpdate}
+                onDelete={handleTaskDelete}
+                onDragStart={handleDragStart}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDrop={(e) => handleDrop(e, index)}
+                isDragging={draggedTaskId === task.id}
+              />
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 });

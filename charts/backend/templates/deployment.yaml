@@ -13,10 +13,13 @@ spec:
       {{- include "backend.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- if .Values.podAnnotations }}
       annotations:
-        {{- toYaml .Values.podAnnotations | nindent 8 }}
-      {{- end }}
+        dapr.io/enabled: {{ .Values.dapr.enabled | quote }}
+        dapr.io/app-id: {{ .Values.dapr.appId | quote }}
+        dapr.io/app-port: {{ .Values.dapr.appPort | quote }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       labels:
         {{- include "backend.selectorLabels" . | nindent 8 }}
     spec:
@@ -41,10 +44,14 @@ spec:
             httpGet:
               path: /health
               port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /health
               port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
           env:
             - name: DATABASE_URL
               valueFrom:

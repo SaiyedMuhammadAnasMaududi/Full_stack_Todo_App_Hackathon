@@ -1,0 +1,52 @@
+openapi: 3.0.0
+info:
+  title: Task Event Schema
+  version: 1.0.0
+
+components:
+  schemas:
+    TaskEvent:
+      type: object
+      required: [event_type, task_id, user_id, task_data, timestamp, correlation_id]
+      properties:
+        event_type:
+          type: string
+          enum: [task.created, task.updated, task.deleted, task.completed]
+        task_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+        task_data:
+          $ref: '#/components/schemas/TaskPayload'
+        timestamp:
+          type: string
+          format: date-time
+        correlation_id:
+          type: string
+          format: uuid
+
+    TaskPayload:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string }
+        completed: { type: boolean }
+        priority: { type: string, enum: [low, medium, high, urgent] }
+        tags: { type: string }
+        due_at: { type: string, format: date-time, nullable: true }
+        reminder_at: { type: string, format: date-time, nullable: true }
+        recurrence_rule: { type: string, nullable: true }
+        is_recurring: { type: boolean }
+
+    AuditEntry:
+      type: object
+      required: [id, event_type, task_id, user_id, timestamp, snapshot]
+      properties:
+        id: { type: string, format: uuid }
+        event_type: { type: string }
+        task_id: { type: string }
+        user_id: { type: string }
+        timestamp: { type: string, format: date-time }
+        snapshot: { $ref: '#/components/schemas/TaskPayload' }

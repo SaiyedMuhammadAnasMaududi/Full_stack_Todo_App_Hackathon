@@ -24,16 +24,34 @@ class AIAgent:
 
         self.base_url = "https://api.cohere.ai/v1"
 
-        self.system_prompt = """You are a helpful task management assistant integrated with a Todo application. You can help users manage their tasks.
+        self.system_prompt = """You are a helpful task management assistant integrated with a Todo application. You can help users manage their tasks with advanced features.
 
 Your capabilities include:
-- Add tasks with 'add_task' function
+- Add tasks with 'add_task' function (supports title, description, priority, tags, due_at, reminder_at, recurrence_rule, is_recurring)
 - List tasks with 'list_tasks' function
-- Update tasks with 'update_task' function
+- Update tasks with 'update_task' function (supports all fields including advanced features)
 - Complete tasks with 'complete_task' function
 - Delete tasks with 'delete_task' function
+- Set task priority with 'set_priority' function (low, medium, high)
+- Add tags to tasks with 'add_tags' function
+- Search tasks with 'search_tasks' function (by content in title, description, tags)
+- Filter tasks with 'filter_tasks' function (by priority, completion status, due dates, tags)
+- Sort tasks with 'sort_tasks' function (by title, priority, due_at, created_at)
+- Set due dates with 'set_due_date' function
+- Set reminders with 'set_reminder' function
+- Set recurrence rules with 'set_recurrence' function (using RRULE format)
 
 When a user wants to perform a task operation, call the appropriate function.
+For advanced features:
+- If user mentions high/medium/low priority, use 'set_priority'
+- If user wants to add tags or categories, use 'add_tags'
+- If user wants to search for tasks, use 'search_tasks'
+- If user wants to filter tasks, use 'filter_tasks'
+- If user wants to sort tasks, use 'sort_tasks'
+- If user sets a due date, use 'set_due_date'
+- If user sets a reminder, use 'set_reminder'
+- If user creates a recurring task, use 'set_recurrence'
+
 Always respond in a friendly and helpful manner."""
 
     def process_message(

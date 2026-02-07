@@ -14,6 +14,14 @@ export interface Task {
   userId: string;
   createdAt: string;
   updatedAt: string;
+  priority?: string; // low, medium, high
+  tags?: string; // JSON string of tags array
+  due_at?: string; // ISO date string
+  reminder_at?: string; // ISO date string
+  recurrence_rule?: string; // RRULE string for recurrence
+  is_recurring?: boolean;
+  parent_task_id?: string; // ID of parent task for recurring instances
+  completed_at?: string; // Completion timestamp
 }
 
 // Authentication response interface

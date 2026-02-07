@@ -25,6 +25,12 @@ serviceAccount:
 
 podAnnotations: {}
 
+# Dapr sidecar configuration
+dapr:
+  enabled: "true"
+  appId: "todo-backend"
+  appPort: "8000"
+
 podSecurityContext: {}
   # fsGroup: 2000
 

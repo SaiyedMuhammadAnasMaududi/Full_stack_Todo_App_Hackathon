@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kafka
+---
+# Install Strimzi CRDs and operator via kubectl apply
+# kubectl apply -f https://strimzi.io/install/latest?namespace=kafka -n kafka
+# This file documents the installation step.
+# For automated setup, use the minikube setup script.

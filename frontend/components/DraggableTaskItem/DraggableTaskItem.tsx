@@ -61,9 +61,15 @@ export default function DraggableTaskItem({
   const handleEdit = async () => {
     try {
       setLoading(true);
-      const updatedTask = await apiClient.updateTask(userId, task.id, {
+      const updatedTask = await apiClient.updateTaskExtended(userId, task.id, {
         title: editingTitle,
         description: editingDescription,
+        priority: task.priority,
+        tags: task.tags,
+        due_at: task.due_at,
+        reminder_at: task.reminder_at,
+        recurrence_rule: task.recurrence_rule,
+        is_recurring: task.is_recurring
       });
       onUpdate(updatedTask);
       setIsEditing(false);
@@ -165,38 +171,95 @@ export default function DraggableTaskItem({
         </div>
       ) : (
         <div className="flex-1">
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id={`task-complete-${task.id}`}
-              checked={task.completed}
-              onChange={handleToggleComplete}
-              disabled={loading}
-              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
-              aria-describedby={`task-desc-${task.id}`}
-              aria-label={`Mark task ${task.title} as ${task.completed ? 'incomplete' : 'complete'}`}
-            />
-            <label
-              htmlFor={`task-complete-${task.id}`}
-              id={`task-title-${task.id}`}
-              className={`ml-3 block truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'} flex-grow cursor-pointer`}
-            >
-              {task.title}
-            </label>
-            <div className="cursor-move opacity-40 hover:opacity-100 transition-opacity">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id={`task-complete-${task.id}`}
+                  checked={task.completed}
+                  onChange={handleToggleComplete}
+                  disabled={loading}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                  aria-describedby={`task-desc-${task.id}`}
+                  aria-label={`Mark task ${task.title} as ${task.completed ? 'incomplete' : 'complete'}`}
+                />
+                <label
+                  htmlFor={`task-complete-${task.id}`}
+                  id={`task-title-${task.id}`}
+                  className={`ml-3 block truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'} flex-grow cursor-pointer`}
+                >
+                  {task.title}
+                </label>
+
+                {/* Priority badge */}
+                {task.priority && (
+                  <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${
+                    task.priority === 'high' ? 'bg-red-100 text-red-800' :
+                    task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-green-100 text-green-800'
+                  }`}>
+                    {task.priority}
+                  </span>
+                )}
+
+                {/* Recurrence icon */}
+                {task.is_recurring && (
+                  <span className="ml-2 text-blue-500" title="Recurring task">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                    </svg>
+                  </span>
+                )}
+              </div>
+
+              {/* Description */}
+              {task.description && (
+                <p id={`task-desc-${task.id}`} className="ml-7 text-sm text-gray-500 mt-1">
+                  {task.description}
+                </p>
+              )}
+
+              {/* Additional info row */}
+              <div className="ml-7 mt-2 flex flex-wrap gap-2 text-xs">
+                {/* Due date */}
+                {task.due_at && (
+                  <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded">
+                    📅 {new Date(task.due_at).toLocaleDateString()}
+                  </span>
+                )}
+
+                {/* Reminder */}
+                {task.reminder_at && (
+                  <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded">
+                    ⏰ {new Date(task.reminder_at).toLocaleString()}
+                  </span>
+                )}
+
+                {/* Tags */}
+                {task.tags && JSON.parse(task.tags || '[]').length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {JSON.parse(task.tags).map((tag: string, index: number) => (
+                      <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Created date */}
+              <p className="ml-7 text-xs text-gray-400 mt-1" aria-label={`Created on ${new Date(task.createdAt).toLocaleString()}`}>
+                Created: {new Date(task.createdAt).toLocaleString()}
+              </p>
+            </div>
+
+            <div className="cursor-move opacity-40 hover:opacity-100 transition-opacity ml-2">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
               </svg>
             </div>
           </div>
-          {task.description && (
-            <p id={`task-desc-${task.id}`} className="ml-7 text-sm text-gray-500 mt-1">
-              {task.description}
-            </p>
-          )}
-          <p className="ml-7 text-xs text-gray-400 mt-1" aria-label={`Created on ${new Date(task.createdAt).toLocaleString()}`}>
-            Created: {new Date(task.createdAt).toLocaleString()}
-          </p>
         </div>
       )}
 

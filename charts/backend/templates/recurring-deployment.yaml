@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recurring-service
+  labels:
+    app: recurring-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recurring-service
+  template:
+    metadata:
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "recurring-service"
+        dapr.io/app-port: "8002"
+      labels:
+        app: recurring-service
+    spec:
+      containers:
+        - name: recurring-service
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["uvicorn", "services.recurring_task_service:app", "--host", "0.0.0.0", "--port", "8002"]
+          ports:
+            - containerPort: 8002
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8002
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "backend.fullname" . }}-secrets
+                  key: database_url
+            - name: BETTER_AUTH_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "backend.fullname" . }}-secrets
+                  key: better_auth_secret
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
