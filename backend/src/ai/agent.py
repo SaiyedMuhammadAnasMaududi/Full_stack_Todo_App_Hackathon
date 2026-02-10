@@ -23,36 +23,87 @@ class AIAgent:
             raise ValueError("COHERE_API_KEY is missing in environment variables")
 
         self.base_url = "https://api.cohere.ai/v1"
+        self.tools_instance = MCPTaskTools()
 
-        self.system_prompt = """You are a helpful task management assistant integrated with a Todo application. You can help users manage their tasks with advanced features.
+        self.system_prompt = """You are a helpful task management assistant integrated with a Todo application. You can help users manage their tasks.
 
-Your capabilities include:
-- Add tasks with 'add_task' function (supports title, description, priority, tags, due_at, reminder_at, recurrence_rule, is_recurring)
-- List tasks with 'list_tasks' function
-- Update tasks with 'update_task' function (supports all fields including advanced features)
-- Complete tasks with 'complete_task' function
-- Delete tasks with 'delete_task' function
-- Set task priority with 'set_priority' function (low, medium, high)
-- Add tags to tasks with 'add_tags' function
-- Search tasks with 'search_tasks' function (by content in title, description, tags)
-- Filter tasks with 'filter_tasks' function (by priority, completion status, due dates, tags)
-- Sort tasks with 'sort_tasks' function (by title, priority, due_at, created_at)
-- Set due dates with 'set_due_date' function
-- Set reminders with 'set_reminder' function
-- Set recurrence rules with 'set_recurrence' function (using RRULE format)
-
-When a user wants to perform a task operation, call the appropriate function.
-For advanced features:
-- If user mentions high/medium/low priority, use 'set_priority'
-- If user wants to add tags or categories, use 'add_tags'
-- If user wants to search for tasks, use 'search_tasks'
-- If user wants to filter tasks, use 'filter_tasks'
-- If user wants to sort tasks, use 'sort_tasks'
-- If user sets a due date, use 'set_due_date'
-- If user sets a reminder, use 'set_reminder'
-- If user creates a recurring task, use 'set_recurrence'
+When a user wants to add, list, update, complete, or delete tasks, you MUST use the provided tools. Do not just say you did it - actually call the tool.
 
 Always respond in a friendly and helpful manner."""
+
+        # Cohere tool definitions for function calling
+        self.tools = [
+            {
+                "name": "add_task",
+                "description": "Create a new task for the user",
+                "parameter_definitions": {
+                    "title": {
+                        "description": "The title of the task",
+                        "type": "str",
+                        "required": True
+                    },
+                    "description": {
+                        "description": "Optional description of the task",
+                        "type": "str",
+                        "required": False
+                    }
+                }
+            },
+            {
+                "name": "list_tasks",
+                "description": "List all tasks for the user. Optionally filter by status.",
+                "parameter_definitions": {
+                    "status": {
+                        "description": "Filter by status: 'completed', 'incomplete', or leave empty for all",
+                        "type": "str",
+                        "required": False
+                    }
+                }
+            },
+            {
+                "name": "update_task",
+                "description": "Update an existing task's title or description",
+                "parameter_definitions": {
+                    "task_id": {
+                        "description": "The ID of the task to update",
+                        "type": "str",
+                        "required": True
+                    },
+                    "title": {
+                        "description": "New title for the task",
+                        "type": "str",
+                        "required": False
+                    },
+                    "description": {
+                        "description": "New description for the task",
+                        "type": "str",
+                        "required": False
+                    }
+                }
+            },
+            {
+                "name": "complete_task",
+                "description": "Mark a task as completed",
+                "parameter_definitions": {
+                    "task_id": {
+                        "description": "The ID of the task to complete",
+                        "type": "str",
+                        "required": True
+                    }
+                }
+            },
+            {
+                "name": "delete_task",
+                "description": "Delete a task",
+                "parameter_definitions": {
+                    "task_id": {
+                        "description": "The ID of the task to delete",
+                        "type": "str",
+                        "required": True
+                    }
+                }
+            }
+        ]
 
     def process_message(
         self,
@@ -81,13 +132,13 @@ Always respond in a friendly and helpful manner."""
                     "message": msg.content
                 })
 
-            # Prepare the request to Cohere
+            # Prepare the request to Cohere with tool definitions
             message = {
-                "model": "command-r-08-2024",  # Updated to use currently available model
+                "model": "command-r-08-2024",
                 "message": user_message,
                 "chat_history": chat_history,
                 "preamble": self.system_prompt,
-                "connectors": [],  # Removed connectors to avoid potential issues
+                "tools": self.tools,
                 "temperature": 0.3
             }
 
@@ -112,11 +163,45 @@ Always respond in a friendly and helpful manner."""
                 }
 
             result = response.json()
-            ai_response = result.get("text", result.get("response", "I'm not sure how to help with that."))
-
-            # Extract tool calls if present
+            ai_response = result.get("text", "")
             tool_calls = result.get("tool_calls", [])
-            tool_responses = result.get("tool_results", []) or result.get("toolResponses", [])
+            tool_responses = []
+
+            # Execute tool calls if the model requested them
+            if tool_calls:
+                for tc in tool_calls:
+                    tool_name = tc.get("name", "")
+                    tool_args = tc.get("parameters", {})
+                    tool_result = self._execute_tool(tool_name, tool_args, session, user)
+                    tool_responses.append({
+                        "call": {"name": tool_name, "parameters": tool_args},
+                        "outputs": [tool_result]
+                    })
+
+                # Send tool results back to Cohere for a final response
+                followup_message = {
+                    "model": "command-r-08-2024",
+                    "message": user_message,
+                    "chat_history": chat_history,
+                    "preamble": self.system_prompt,
+                    "tools": self.tools,
+                    "tool_results": tool_responses,
+                    "temperature": 0.3
+                }
+
+                followup_response = requests.post(
+                    f"{self.base_url}/chat",
+                    headers=headers,
+                    json=followup_message
+                )
+
+                if followup_response.status_code == 200:
+                    followup_result = followup_response.json()
+                    ai_response = followup_result.get("text", ai_response or "Done!")
+
+            # If no tool calls and no text, provide a default
+            if not ai_response:
+                ai_response = "I'm not sure how to help with that."
 
             # Add the assistant's response to the conversation
             conversation_service.add_message_to_conversation(
@@ -148,6 +233,45 @@ Always respond in a friendly and helpful manner."""
                 "confirmation_message": "Sorry, something went wrong while processing your request.",
                 "timestamp": datetime.utcnow().isoformat()
             }
+
+    def _execute_tool(self, tool_name: str, args: Dict[str, Any], session: Session, user) -> Dict[str, Any]:
+        """Execute a tool call and return the result as a dict for Cohere."""
+        try:
+            if tool_name == "add_task":
+                result = self.tools_instance.add_task(
+                    session=session, user=user,
+                    title=args.get("title", "Untitled"),
+                    description=args.get("description")
+                )
+            elif tool_name == "list_tasks":
+                result = self.tools_instance.list_tasks(
+                    session=session, user=user,
+                    status=args.get("status")
+                )
+            elif tool_name == "update_task":
+                result = self.tools_instance.update_task(
+                    session=session, user=user,
+                    task_id=args.get("task_id", ""),
+                    title=args.get("title"),
+                    description=args.get("description")
+                )
+            elif tool_name == "complete_task":
+                result = self.tools_instance.complete_task(
+                    session=session, user=user,
+                    task_id=int(args.get("task_id", 0))
+                )
+            elif tool_name == "delete_task":
+                result = self.tools_instance.delete_task(
+                    session=session, user=user,
+                    task_id=int(args.get("task_id", 0))
+                )
+            else:
+                return {"success": False, "error": f"Unknown tool: {tool_name}"}
+
+            return {"success": result.success, "data": result.data, "error": result.error}
+        except Exception as e:
+            print(f"Tool execution error ({tool_name}): {e}")
+            return {"success": False, "error": str(e)}
 
 
 # Global instance

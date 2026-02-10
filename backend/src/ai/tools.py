@@ -23,7 +23,7 @@ class ToolResult(BaseModel):
 
 class TaskData(BaseModel):
     """Task data structure for operations"""
-    id: int = None
+    id: str = None
     title: str
     description: str = None
     completed: bool = False
@@ -60,7 +60,7 @@ class MCPTaskTools:
         """
         try:
             # Import the existing Task model from the main models file
-            from ..models import Task
+            from models import Task
 
             # Create new task instance
             new_task = Task(
@@ -86,7 +86,7 @@ class MCPTaskTools:
                 updated_at=str(new_task.updated_at)
             )
 
-            return ToolResult(success=True, data=task_data.model_dump())
+            return ToolResult(success=True, data=task_data.dict())
 
         except Exception as e:
             # Return error result
@@ -109,7 +109,7 @@ class MCPTaskTools:
             ToolResult with success status and list of tasks
         """
         try:
-            from ..models import Task
+            from models import Task
             from sqlmodel import select
 
             # Build query based on status filter
@@ -135,7 +135,7 @@ class MCPTaskTools:
                     created_at=str(task.created_at),
                     updated_at=str(task.updated_at)
                 )
-                task_list.append(task_data.model_dump())
+                task_list.append(task_data.dict())
 
             return ToolResult(success=True, data=task_list)
 
@@ -148,7 +148,7 @@ class MCPTaskTools:
                 }
             )
 
-    def update_task(self, session: Session, user, task_id: int, title: str = None, description: str = None) -> ToolResult:
+    def update_task(self, session: Session, user, task_id: str, title: str = None, description: str = None) -> ToolResult:
         """
         Update specified fields of an existing task
         Args:
@@ -161,7 +161,7 @@ class MCPTaskTools:
             ToolResult with success status and updated task data
         """
         try:
-            from ..models import Task
+            from models import Task
             from sqlmodel import select
 
             # Find the task for the authenticated user
@@ -203,7 +203,7 @@ class MCPTaskTools:
                 updated_at=str(task.updated_at)
             )
 
-            return ToolResult(success=True, data=task_data.model_dump())
+            return ToolResult(success=True, data=task_data.dict())
 
         except Exception as e:
             return ToolResult(
@@ -214,7 +214,7 @@ class MCPTaskTools:
                 }
             )
 
-    def complete_task(self, session: Session, user, task_id: int) -> ToolResult:
+    def complete_task(self, session: Session, user, task_id: str) -> ToolResult:
         """
         Mark a task as completed
         Args:
@@ -225,7 +225,7 @@ class MCPTaskTools:
             ToolResult with success status and updated task data
         """
         try:
-            from ..models import Task
+            from models import Task
             from sqlmodel import select
 
             # Find the task for the authenticated user
@@ -262,7 +262,7 @@ class MCPTaskTools:
                 updated_at=str(task.updated_at)
             )
 
-            return ToolResult(success=True, data=task_data.model_dump())
+            return ToolResult(success=True, data=task_data.dict())
 
         except Exception as e:
             return ToolResult(
@@ -273,7 +273,7 @@ class MCPTaskTools:
                 }
             )
 
-    def delete_task(self, session: Session, user, task_id: int) -> ToolResult:
+    def delete_task(self, session: Session, user, task_id: str) -> ToolResult:
         """
         Delete an existing task
         Args:
@@ -284,7 +284,7 @@ class MCPTaskTools:
             ToolResult with success status and deletion confirmation
         """
         try:
-            from ..models import Task
+            from models import Task
             from sqlmodel import select
 
             # Find the task for the authenticated user
